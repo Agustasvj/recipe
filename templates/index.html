@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Culinary Chaos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="dark-theme">
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <h1>Culinary Chaos</h1>
+            <span class="tagline">Where Recipes Get Fucked Up</span>
+        </div>
+        <div class="nav-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <ul class="nav-menu">
+            <button class="nav-close">✕</button>
+            <li><a href="{{ url_for('index') }}" class="nav-link">Home</a></li>
+            <li><a href="{{ url_for('main_meals') }}" class="nav-link">Main Meals</a></li>
+            <li><a href="{{ url_for('baking') }}" class="nav-link">Baking</a></li>
+            <li><a href="{{ url_for('desert') }}" class="nav-link">Desert</a></li>
+            <li><a href="{{ url_for('add_recipe') }}" class="nav-link">Add Recipe</a></li>
+            <li><a href="{{ url_for('contact') }}" class="nav-link">Contact</a></li>
+            <li><button class="theme-switcher">🌓</button></li>
+        </ul>
+    </nav>
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Welcome to Culinary Chaos</h1>
+            <p>Where recipes get fucked up and flavors go wild.</p>
+            <ul class="hero-nav">
+                <li><a href="{{ url_for('main_meals') }}">Main Meals</a></li>
+                <li><a href="{{ url_for('baking') }}">Baking</a></li>
+                <li><a href="{{ url_for('desert') }}">Desert</a></li>
+                <li><a href="{{ url_for('add_recipe') }}">Add Recipe</a></li>
+            </ul>
+        </div>
+    </section>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

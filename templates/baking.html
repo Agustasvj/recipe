@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baking - Culinary Chaos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="dark-theme">
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <h1>Culinary Chaos</h1>
+            <span class="tagline">Where Recipes Get Fucked Up</span>
+        </div>
+        <div class="nav-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <ul class="nav-menu">
+            <button class="nav-close">✕</button>
+            <li><a href="{{ url_for('index') }}" class="nav-link">Home</a></li>
+            <li><a href="{{ url_for('main_meals') }}" class="nav-link">Main Meals</a></li>
+            <li><a href="{{ url_for('baking') }}" class="nav-link">Baking</a></li>
+            <li><a href="{{ url_for('desert') }}" class="nav-link">Desert</a></li>
+            <li><a href="{{ url_for('add_recipe') }}" class="nav-link">Add Recipe</a></li>
+            <li><a href="{{ url_for('contact') }}" class="nav-link">Contact</a></li>
+            <li><button class="theme-switcher">🌓</button></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <div class="section-header baking">
+            <h2>Baking</h2>
+        </div>
+        <input type="text" class="search-bar" placeholder="Search recipes..." oninput="searchRecipes()">
+        <div class="recipe-grid">
+            {% if recipes %}
+                {% for recipe in recipes %}
+                <div class="recipe-card">
+                    <h3>{{ recipe.name }}</h3>
+                    <img src="{{ recipe.image }}" alt="{{ recipe.name }}">
+                    <h4>Ingredients:</h4>
+                    <ol>
+                        {% for ingredient in recipe.ingredients %}
+                        <li>{{ ingredient }}</li>
+                        {% endfor %}
+                    </ol>
+                    <h4>Instructions:</h4>
+                    <ol>
+                        {% for instruction in recipe.instructions.split('.') %}
+                        {% if instruction.strip() %}
+                        <li>{{ instruction.strip() }}</li>
+                        {% endif %}
+                        {% endfor %}
+                    </ol>
+                    {% if recipe.remarks %}
+                    <h4>Remarks:</h4>
+                    <p>{{ recipe.remarks }}</p>
+                    {% endif %}
+                    <button class="delete-btn" onclick="deleteRecipe({{ recipe.id }})">Remove</button>
+                    <a href="{{ url_for('edit_recipe', id=recipe.id) }}"><button class="edit-btn">Edit</button></a>
+                    <a href="{{ url_for('download_recipe', id=recipe.id, format='pdf') }}"><button class="pdf-btn">PDF</button></a>
+                    <a href="{{ url_for('download_recipe', id=recipe.id, format='docx') }}"><button class="docx-btn">Docx</button></a>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No recipes found. Add some fuckin' baked goods!</p>
+            {% endif %}
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

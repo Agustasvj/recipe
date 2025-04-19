@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Recipe - Culinary Chaos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="dark-theme">
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <h1>Culinary Chaos</h1>
+            <span class="tagline">Where Recipes Get Fucked Up</span>
+        </div>
+        <div class="nav-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <ul class="nav-menu">
+            <button class="nav-close">✕</button>
+            <li><a href="{{ url_for('index') }}" class="nav-link">Home</a></li>
+            <li><a href="{{ url_for('main_meals') }}" class="nav-link">Main Meals</a></li>
+            <li><a href="{{ url_for('baking') }}" class="nav-link">Baking</a></li>
+            <li><a href="{{ url_for('desert') }}" class="nav-link">Desert</a></li>
+            <li><a href="{{ url_for('add_recipe') }}" class="nav-link">Add Recipe</a></li>
+            <li><a href="{{ url_for('contact') }}" class="nav-link">Contact</a></li>
+            <li><button class="theme-switcher">🌓</button></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <h2>Add a New Recipe</h2>
+        <form class="recipe-form" onsubmit="event.preventDefault(); addRecipe();">
+            <input type="text" id="recipeName" placeholder="Recipe Name" required>
+            <select id="recipeType" required>
+                <option value="" disabled selected>Select Type</option>
+                <option value="main_meal">Main Meal</option>
+                <option value="baking">Baking</option>
+                <option value="desert">Desert</option>
+            </select>
+            <textarea id="recipeIngredients" placeholder="Ingredients (one per line)" required></textarea>
+            <textarea id="recipeInstructions" placeholder="Instructions" required></textarea>
+            <textarea id="recipeRemarks" placeholder="Remarks (optional)"></textarea>
+            <input type="text" id="recipeImage" placeholder="Image URL (optional)">
+            <button type="submit">Add Recipe</button>
+        </form>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

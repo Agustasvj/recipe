@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Recipe - Culinary Chaos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="dark-theme">
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <h1>Culinary Chaos</h1>
+            <span class="tagline">Where Recipes Get Fucked Up</span>
+        </div>
+        <div class="nav-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <ul class="nav-menu">
+            <button class="nav-close">✕</button>
+            <li><a href="{{ url_for('index') }}" class="nav-link">Home</a></li>
+            <li><a href="{{ url_for('main_meals') }}" class="nav-link">Main Meals</a></li>
+            <li><a href="{{ url_for('baking') }}" class="nav-link">Baking</a></li>
+            <li><a href="{{ url_for('desert') }}" class="nav-link">Desert</a></li>
+            <li><a href="{{ url_for('add_recipe') }}" class="nav-link">Add Recipe</a></li>
+            <li><a href="{{ url_for('contact') }}" class="nav-link">Contact</a></li>
+            <li><button class="theme-switcher">🌓</button></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <h2>Edit Recipe</h2>
+        <form class="recipe-form" onsubmit="event.preventDefault(); editRecipe({{ recipe.id }});">
+            <input type="text" id="recipeName" value="{{ recipe.name }}" required>
+            <select id="recipeType" required>
+                <option value="main_meal" {% if recipe.type == 'main_meal' %}selected{% endif %}>Main Meal</option>
+                <option value="baking" {% if recipe.type == 'baking' %}selected{% endif %}>Baking</option>
+                <option value="desert" {% if recipe.type == 'desert' %}selected{% endif %}>Desert</option>
+            </select>
+            <textarea id="recipeIngredients" required>{{ recipe.ingredients | join('\n') }}</textarea>
+            <textarea id="recipeInstructions" required>{{ recipe.instructions }}</textarea>
+            <textarea id="recipeRemarks">{{ recipe.remarks }}</textarea>
+            <input type="text" id="recipeImage" value="{{ recipe.image }}">
+            <button type="submit">Update Recipe</button>
+        </form>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
