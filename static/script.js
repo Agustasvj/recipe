@@ -81,16 +81,16 @@ async function addRecipe() {
                 body: JSON.stringify(recipe)
             });
             if (response.ok) {
-                alert('Recipe added like a fuckin\' boss!');
+                alert('Recipe added!');
                 clearForm();
             } else {
-                alert('Shit hit the fan, try again!');
+                alert('Failed, try again!');
             }
         } catch (error) {
-            alert('Network fucked up: ' + error.message);
+            alert('Network error: ' + error.message);
         }
     } else {
-        alert('Fill in all the damn required fields!');
+        alert('Fill in all the required fields!');
     }
 }
 
@@ -111,7 +111,7 @@ async function editRecipe(id) {
                 body: JSON.stringify(recipe)
             });
             if (response.ok) {
-                alert('Recipe updated like a fuckin\' champ!');
+                alert('Recipe updated!');
                 const routeMap = {
                     'main_meal': '/main_meals',
                     'baking': '/baking',
@@ -119,30 +119,30 @@ async function editRecipe(id) {
                 };
                 window.location.href = routeMap[type] || '/';
             } else {
-                alert('Update fucked up, try again!');
+                alert('Update failed, try again!');
             }
         } catch (error) {
-            alert('Network shit the bed: ' + error.message);
+            alert('Network error: ' + error.message);
         }
     } else {
-        alert('Fill in all the damn required fields!');
+        alert('Fill in all the required fields!');
     }
 }
 
 async function deleteRecipe(id) {
-    if (confirm('You sure you wanna nuke this fuckin\' recipe?')) {
+    if (confirm('You sure you wanna remove recipe?')) {
         try {
             const response = await fetch(`/delete_recipe/${id}`, {
                 method: 'DELETE'
             });
             if (response.ok) {
-                alert('Recipe yeeted to oblivion!');
+                alert('Recipe deleted!');
                 location.reload();
             } else {
-                alert('Deletion fucked up, try again!');
+                alert('Deletion failed, try again!');
             }
         } catch (error) {
-            alert('Network shit the bed: ' + error.message);
+            alert('Network error: ' + error.message);
         }
     }
 }

@@ -8,12 +8,21 @@ from docx import Document
 from docx.shared import Inches
 import io
 import logging
+import telebot
 
 app = Flask(__name__)
 CORS(app)
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
+
+# Your Telegram bot token (get from @BotFather)
+BOT_TOKEN = '7685546024:AAHNlmkypvEqE7xgmNsFQ1SuqjwkvW8dkZk'
+# Your Telegram chat ID (get from @userinfobot)
+CHAT_ID = '6214817938'
+
+# Initialize the Telegram bot
+bot = telebot.TeleBot(BOT_TOKEN)
 
 # Initialize SQLite database
 def init_db():
@@ -235,6 +244,40 @@ def download_recipe(id, format):
         buffer.seek(0)
         return send_file(buffer, as_attachment=True, download_name=f"{recipe_data['name']}.docx", mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
     return jsonify({'status': 'error', 'message': 'Invalid format'}), 400
+
+@app.route('/submit_form', methods=['POST'])
+def submit_form():
+    try:
+        # Get form data
+        name = request.form.get('name')
+        email = request.form.get('email')
+        message = request.form.get('message')
+
+        # Create message text
+        telegram_message = (
+            f"Culinary Chaos Message 🌭🍟🍔🍪🎂!\n\n"
+            f"From 📛: {name}\n"
+            f"Email 📧: {email}\n"
+            f"Message ℹ️:{message}"
+        )
+
+        # Send message to Telegram
+        bot.send_message(CHAT_ID, telegram_message)
+        
+        return """
+        <script>
+            alert('Message sent successfully!');
+            window.location.href = '/';
+        </script>
+        """
+    except Exception as e:
+        print(f"Error: {e}")
+        return """
+        <script>
+            alert('Error sending message. Please try again later.');
+            window.location.href = '/';
+        </script>
+        """
 
 if __name__ == '__main__':
     app.run(debug=True)
