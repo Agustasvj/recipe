@@ -9,6 +9,9 @@ from docx.shared import Inches
 import io
 import logging
 import telebot
+from cryptography.fernet import Fernet
+import base64
+import hashlib
 
 app = Flask(__name__)
 CORS(app)
@@ -16,12 +19,25 @@ CORS(app)
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 
-# Your Telegram bot token (get from @BotFather)
-BOT_TOKEN = '7685546024:AAHNlmkypvEqE7xgmNsFQ1SuqjwkvW8dkZk'
-# Your Telegram chat ID (get from @userinfobot)
-CHAT_ID = '6214817938'
+# Generate encryption key (obscured, can be enhanced with dynamic derivation)
+def get_encryption_key():
+    base_key = b"culinary-chaos-secret-98765"
+    salted_key = base_key + b"-secure-salt"
+    return base64.urlsafe_b64encode(hashlib.sha256(salted_key).digest())
 
-# Initialize the Telegram bot
+# Encrypted tokens (replace with your encrypted values)
+encrypted_bot_token = b"gAAAAABoEKINPkZHEMKoexHy-wcOoUtySH0mj97wqbt0QefZ8M2YZyhu8nk-p2EYm8B7xnVHwXrIaV1eCZwFksKlYdgEz4rxmCdvyPZShFOpmFqXkjMzc9-0BXziLQGYTrq03CNWSI3A"
+encrypted_chat_id = b"gAAAAABoEKIN_-XoFz-S7fyWbbshySQtXHDW1PbGwUUCM4ZpNG6S_VudMNLj2y4zQIWRtKvqfASqo53FJ-tUGs6MXjCgYOE1HA=="
+
+# Decryption function
+def get_secure_data(encrypted_data):
+    key = get_encryption_key()
+    fernet = Fernet(key)
+    return fernet.decrypt(encrypted_data).decode()
+
+# Initialize Telegram bot with decrypted token
+BOT_TOKEN = get_secure_data(encrypted_bot_token)
+CHAT_ID = get_secure_data(encrypted_chat_id)
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # Initialize SQLite database
