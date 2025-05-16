@@ -91,6 +91,7 @@ body {
     padding: 0;
     display: flex;
     gap: 15px;
+    justify-content: center;
 }
 
 .hero-nav li a {
@@ -526,6 +527,7 @@ a:hover {
     .hero-nav {
         flex-direction: column;
         gap: 8px;
+        
     }
 
     .hero-nav li a {
