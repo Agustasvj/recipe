@@ -56,7 +56,7 @@ RECIPE_HUB/
 4. **Run the application:**
 
    ```bash
-   flask run
+   python app.py
    ```
 
 5. **Navigate to:**
