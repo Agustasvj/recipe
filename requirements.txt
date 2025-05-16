@@ -1,0 +1,6 @@
+Flask
+flask-cors
+reportlab
+python-docx
+pyTelegramBotAPI
+cryptography
