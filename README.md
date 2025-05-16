@@ -31,11 +31,13 @@ RECIPE_HUB/
 
 ## ⚙️ Installation
 
+
+
 1. **Clone the repository:**
    ```bash
    git clone https://github.com/Agustasvj/recipe.git
    cd recipe
-````
+   ```
 
 2. **Set up a virtual environment:**
 
