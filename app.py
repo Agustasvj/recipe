@@ -8,16 +8,23 @@ from docx import Document
 from docx.shared import Inches
 import io
 import logging
+import os
 import telebot
 from cryptography.fernet import Fernet
 import base64
 import hashlib
+from flask_socketio import SocketIO
 
 app = Flask(__name__)
 CORS(app)
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
+
+socketio = SocketIO(app, cors_allowed_origins='*')
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Generate encryption key (obscured, can be enhanced with dynamic derivation)
 def get_encryption_key():
@@ -296,4 +303,6 @@ def submit_form():
         """
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5100))
+    logger.debug(f"Running on port {port}")
+    socketio.run(app, host='0.0.0.0', port=port, debug=True)
