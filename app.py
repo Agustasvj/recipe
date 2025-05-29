@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request, jsonify, send_file
-import sqlite3
+from flask import Flask, render_template, request, jsonify, send_file, send_from_directory
+import psycopg2
 from flask_cors import CORS
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, ListFlowable, ListItem
@@ -10,51 +10,32 @@ import io
 import logging
 import os
 import telebot
-from cryptography.fernet import Fernet
-import base64
-import hashlib
 from flask_socketio import SocketIO
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 CORS(app)
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
-
-socketio = SocketIO(app, cors_allowed_origins='*')
-
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# Generate encryption key (obscured, can be enhanced with dynamic derivation)
-def get_encryption_key():
-    base_key = b"culinary-chaos-secret-98765"
-    salted_key = base_key + b"-secure-salt"
-    return base64.urlsafe_b64encode(hashlib.sha256(salted_key).digest())
+# Initialize SocketIO for WebSocket support
+socketio = SocketIO(app, cors_allowed_origins='*')
 
-# Encrypted tokens (replace with your encrypted values)
-encrypted_bot_token = b"gAAAAABoEKINPkZHEMKoexHy-wcOoUtySH0mj97wqbt0QefZ8M2YZyhu8nk-p2EYm8B7xnVHwXrIaV1eCZwFksKlYdgEz4rxmCdvyPZShFOpmFqXkjMzc9-0BXziLQGYTrq03CNWSI3A"
-encrypted_chat_id = b"gAAAAABoEKIN_-XoFz-S7fyWbbshySQtXHDW1PbGwUUCM4ZpNG6S_VudMNLj2y4zQIWRtKvqfASqo53FJ-tUGs6MXjCgYOE1HA=="
-
-# Decryption function
-def get_secure_data(encrypted_data):
-    key = get_encryption_key()
-    fernet = Fernet(key)
-    return fernet.decrypt(encrypted_data).decode()
-
-# Initialize Telegram bot with decrypted token
-BOT_TOKEN = get_secure_data(encrypted_bot_token)
-CHAT_ID = get_secure_data(encrypted_chat_id)
+# Initialize Telegram bot with environment variables
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
+CHAT_ID = os.environ.get('CHAT_ID')
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Initialize SQLite database
+# Initialize Postgres database
 def init_db():
-    with sqlite3.connect('recipes.db') as conn:
+    DATABASE_URL = os.environ['DATABASE_URL']
+    with psycopg2.connect(DATABASE_URL, sslmode='require') as conn:
         cursor = conn.cursor()
-        cursor.execute('DROP TABLE IF EXISTS recipes')
+        # Create table if it doesn't exist
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS recipes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 name TEXT NOT NULL,
                 type TEXT NOT NULL,
                 ingredients TEXT NOT NULL,
@@ -63,18 +44,21 @@ def init_db():
                 image TEXT
             )
         ''')
-        # Insert sample data for testing
+        # Insert sample data (skip if already exists)
         cursor.execute('''
             INSERT INTO recipes (name, type, ingredients, instructions, remarks, image)
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT DO NOTHING
         ''', ('Test Main Meal', 'main_meal', 'Ingredient1,Ingredient2', 'Step 1. Step 2.', 'Sample remark', 'https://via.placeholder.com/150'))
         cursor.execute('''
             INSERT INTO recipes (name, type, ingredients, instructions, remarks, image)
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT DO NOTHING
         ''', ('Test Baking', 'baking', 'Flour,Sugar', 'Mix. Bake.', 'Baking note', 'https://via.placeholder.com/150'))
         cursor.execute('''
             INSERT INTO recipes (name, type, ingredients, instructions, remarks, image)
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT DO NOTHING
         ''', ('Test Desert', 'desert', 'Cream,Fruit', 'Chill. Serve.', 'Sweet note', 'https://via.placeholder.com/150'))
         conn.commit()
 
@@ -86,7 +70,8 @@ def index():
 
 @app.route('/main_meals')
 def main_meals():
-    with sqlite3.connect('recipes.db') as conn:
+    DATABASE_URL = os.environ['DATABASE_URL']
+    with psycopg2.connect(DATABASE_URL, sslmode='require') as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM recipes WHERE type = 'main_meal'")
         recipes = [{'id': r[0], 'name': r[1], 'type': r[2], 'ingredients': r[3].split(','), 'instructions': r[4], 'remarks': r[5], 'image': r[6]} for r in cursor.fetchall()]
@@ -95,7 +80,8 @@ def main_meals():
 
 @app.route('/baking')
 def baking():
-    with sqlite3.connect('recipes.db') as conn:
+    DATABASE_URL = os.environ['DATABASE_URL']
+    with psycopg2.connect(DATABASE_URL, sslmode='require') as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM recipes WHERE type = 'baking'")
         recipes = [{'id': r[0], 'name': r[1], 'type': r[2], 'ingredients': r[3].split(','), 'instructions': r[4], 'remarks': r[5], 'image': r[6]} for r in cursor.fetchall()]
@@ -104,7 +90,8 @@ def baking():
 
 @app.route('/desert')
 def desert():
-    with sqlite3.connect('recipes.db') as conn:
+    DATABASE_URL = os.environ['DATABASE_URL']
+    with psycopg2.connect(DATABASE_URL, sslmode='require') as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM recipes WHERE type = 'desert'")
         recipes = [{'id': r[0], 'name': r[1], 'type': r[2], 'ingredients': r[3].split(','), 'instructions': r[4], 'remarks': r[5], 'image': r[6]} for r in cursor.fetchall()]
@@ -117,9 +104,10 @@ def add_recipe_page():
 
 @app.route('/edit_recipe/<int:id>')
 def edit_recipe(id):
-    with sqlite3.connect('recipes.db') as conn:
+    DATABASE_URL = os.environ['DATABASE_URL']
+    with psycopg2.connect(DATABASE_URL, sslmode='require') as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM recipes WHERE id = ?", (id,))
+        cursor.execute("SELECT * FROM recipes WHERE id = %s", (id,))
         recipe = cursor.fetchone()
         if recipe:
             recipe_data = {
@@ -145,12 +133,13 @@ def update_recipe(id):
         instructions = data['instructions']
         remarks = data['remarks']
         image = data['image']
-        with sqlite3.connect('recipes.db') as conn:
+        DATABASE_URL = os.environ['DATABASE_URL']
+        with psycopg2.connect(DATABASE_URL, sslmode='require') as conn:
             cursor = conn.cursor()
             cursor.execute('''
                 UPDATE recipes
-                SET name = ?, type = ?, ingredients = ?, instructions = ?, remarks = ?, image = ?
-                WHERE id = ?
+                SET name = %s, type = %s, ingredients = %s, instructions = %s, remarks = %s, image = %s
+                WHERE id = %s
             ''', (name, type, ingredients, instructions, remarks, image, id))
             conn.commit()
             if cursor.rowcount > 0:
@@ -175,11 +164,12 @@ def add_recipe():
         instructions = data['instructions']
         remarks = data['remarks']
         image = data['image']
-        with sqlite3.connect('recipes.db') as conn:
+        DATABASE_URL = os.environ['DATABASE_URL']
+        with psycopg2.connect(DATABASE_URL, sslmode='require') as conn:
             cursor = conn.cursor()
             cursor.execute('''
                 INSERT INTO recipes (name, type, ingredients, instructions, remarks, image)
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s, %s, %s)
             ''', (name, type, ingredients, instructions, remarks, image))
             conn.commit()
         app.logger.debug(f"Added recipe: {name}")
@@ -191,9 +181,10 @@ def add_recipe():
 @app.route('/delete_recipe/<int:id>', methods=['DELETE'])
 def delete_recipe(id):
     try:
-        with sqlite3.connect('recipes.db') as conn:
+        DATABASE_URL = os.environ['DATABASE_URL']
+        with psycopg2.connect(DATABASE_URL, sslmode='require') as conn:
             cursor = conn.cursor()
-            cursor.execute('DELETE FROM recipes WHERE id = ?', (id,))
+            cursor.execute('DELETE FROM recipes WHERE id = %s', (id,))
             conn.commit()
             if cursor.rowcount > 0:
                 return jsonify({'status': 'success'}), 200
@@ -205,9 +196,10 @@ def delete_recipe(id):
 
 @app.route('/download_recipe/<int:id>/<format>')
 def download_recipe(id, format):
-    with sqlite3.connect('recipes.db') as conn:
+    DATABASE_URL = os.environ['DATABASE_URL']
+    with psycopg2.connect(DATABASE_URL, sslmode='require') as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM recipes WHERE id = ?", (id,))
+        cursor.execute("SELECT * FROM recipes WHERE id = %s", (id,))
         recipe = cursor.fetchone()
         if not recipe:
             return jsonify({'status': 'error', 'message': 'Recipe not found'}), 404
@@ -271,22 +263,16 @@ def download_recipe(id, format):
 @app.route('/submit_form', methods=['POST'])
 def submit_form():
     try:
-        # Get form data
         name = request.form.get('name')
         email = request.form.get('email')
         message = request.form.get('message')
-
-        # Create message text
         telegram_message = (
             f"Culinary Chaos Message 🌭🍟🍔🍪🎂!\n\n"
             f"From 📛: {name}\n"
             f"Email 📧: {email}\n"
             f"Message ℹ️:{message}"
         )
-
-        # Send message to Telegram
         bot.send_message(CHAT_ID, telegram_message)
-        
         return """
         <script>
             alert('Message sent successfully!');
@@ -294,13 +280,18 @@ def submit_form():
         </script>
         """
     except Exception as e:
-        print(f"Error: {e}")
+        logger.error(f"Error sending Telegram message: {str(e)}")
         return """
         <script>
             alert('Error sending message. Please try again later.');
             window.location.href = '/';
         </script>
         """
+
+# Serve static files
+@app.route('/static/<path:path>')
+def send_static(path):
+    return send_from_directory('static', path)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5100))
