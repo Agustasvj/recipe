@@ -70,19 +70,30 @@ async function addRecipe() {
     const ingredients = document.getElementById('recipeIngredients').value.split('\n').filter(i => i.trim());
     const instructions = document.getElementById('recipeInstructions').value;
     const remarks = document.getElementById('recipeRemarks').value;
-    const image = document.getElementById('recipeImage').value || 'https://via.placeholder.com/150';
+    const imageLink = document.getElementById('recipeImage').value;
+    const imageFile = document.getElementById('recipeImageFile').files[0];
 
     if (name && type && ingredients.length > 0 && instructions) {
-        const recipe = { name, type, ingredients, instructions, remarks, image };
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('type', type);
+        formData.append('ingredients', JSON.stringify(ingredients));
+        formData.append('instructions', instructions);
+        formData.append('remarks', remarks);
+        formData.append('imageLink', imageLink);
+        if (imageFile) {
+            formData.append('imageFile', imageFile);
+        }
+
         try {
             const response = await fetch('/add_recipe', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(recipe)
+                body: formData
             });
             if (response.ok) {
                 alert('Recipe added!');
                 clearForm();
+                window.location.href = '/manage';
             } else {
                 alert('Failed, try again!');
             }
@@ -100,24 +111,29 @@ async function editRecipe(id) {
     const ingredients = document.getElementById('recipeIngredients').value.split('\n').filter(i => i.trim());
     const instructions = document.getElementById('recipeInstructions').value;
     const remarks = document.getElementById('recipeRemarks').value;
-    const image = document.getElementById('recipeImage').value || 'https://via.placeholder.com/150';
+    const imageLink = document.getElementById('recipeImage').value;
+    const imageFile = document.getElementById('recipeImageFile').files[0];
 
     if (name && type && ingredients.length > 0 && instructions) {
-        const recipe = { name, type, ingredients, instructions, remarks, image };
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('type', type);
+        formData.append('ingredients', JSON.stringify(ingredients));
+        formData.append('instructions', instructions);
+        formData.append('remarks', remarks);
+        formData.append('imageLink', imageLink);
+        if (imageFile) {
+            formData.append('imageFile', imageFile);
+        }
+
         try {
             const response = await fetch(`/edit_recipe/${id}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(recipe)
+                body: formData
             });
             if (response.ok) {
                 alert('Recipe updated!');
-                const routeMap = {
-                    'main_meal': '/main_meals',
-                    'baking': '/baking',
-                    'desert': '/desert'
-                };
-                window.location.href = routeMap[type] || '/';
+                window.location.href = '/manage';
             } else {
                 alert('Update failed, try again!');
             }
@@ -154,6 +170,8 @@ function clearForm() {
     document.getElementById('recipeInstructions').value = '';
     document.getElementById('recipeRemarks').value = '';
     document.getElementById('recipeImage').value = '';
+    const fileInput = document.getElementById('recipeImageFile');
+    if (fileInput) fileInput.value = '';
 }
 
 function searchRecipes() {

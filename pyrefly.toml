@@ -1,0 +1,6 @@
+# Pyrefly configuration file
+python-interpreter = "venv/Scripts/python.exe"
+site-package-path = ["venv/Lib/site-packages"]
+
+[errors]
+untyped-import = "ignore"
